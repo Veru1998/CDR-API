@@ -4,6 +4,7 @@ using CDR.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CDR.Migrations
 {
     [DbContext(typeof(CallDetailRecordDBContext))]
-    partial class CallDetailRecordDBContextModelSnapshot : ModelSnapshot
+    [Migration("20241223075713_UpdatePhoneNumbersToString")]
+    partial class UpdatePhoneNumbersToString
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -35,7 +38,7 @@ namespace CDR.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("Cost")
-                        .HasColumnType("decimal(18, 3)");
+                        .HasColumnType("decimal(18, 2)");
 
                     b.Property<string>("Currency")
                         .IsRequired()
@@ -45,7 +48,7 @@ namespace CDR.Migrations
                     b.Property<int>("Duration")
                         .HasColumnType("int");
 
-                    b.Property<TimeOnly>("EndTime")
+                    b.Property<TimeSpan>("EndTime")
                         .HasColumnType("time");
 
                     b.Property<string>("Recipient")

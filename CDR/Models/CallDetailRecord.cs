@@ -7,18 +7,17 @@ namespace CDR.Models
     {
         [Key]
         public string Reference { get; set; }
+        public string CallerId { get; set; }
         [Required]
-        public long CallerId { get; set; }
-        [Required]
-        public long Recipient { get; set; }
+        public string Recipient { get; set; }
         [Required]
         public DateTime CallDate { get; set; }
         [Required]
-        public TimeSpan EndTime { get; set; }
+        public TimeOnly EndTime { get; set; }
         [Required]
         public int Duration { get; set; }
         [Required]
-        [Column(TypeName = "decimal(18, 2)")]
+        [Column(TypeName = "decimal(18, 3)")]
         public decimal Cost { get; set; }
         [Required]
         [MaxLength(3)]
