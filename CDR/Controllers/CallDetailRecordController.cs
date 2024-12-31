@@ -87,5 +87,35 @@ namespace CDR.Controllers
                 return StatusCode(500, $"An error occurred: {ex.Message}");
             }
         }
+
+        /// <summary>
+        /// Get number of calls for some time range.
+        /// </summary>
+        /// <param name="startDate">Start date of the range.</param>
+        /// <param name="endDate">End date of the range.</param>
+        /// <returns>Returns number of calls made during given time range.</returns>
+        /// <response code="400">"Wrong parameters provided. Provide either valid time range."</response>
+        /// <response code="500">"An error occurred: [error message]."</response>
+        [HttpGet("call-volume")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetCallVolume(string startDate, string endDate)
+        {
+            if (string.IsNullOrWhiteSpace(startDate) || string.IsNullOrWhiteSpace(endDate))
+            {
+                return StatusCode(400, "Wrong parameters provided. Provide valid time range.");
+            }
+
+            try
+            {
+                var result = await _analyticsService.CallVolume(DateTime.Parse(startDate), DateTime.Parse(endDate));
+                return new OkObjectResult(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An error occurred: {ex.Message}");
+            }
+        }
     }
 }

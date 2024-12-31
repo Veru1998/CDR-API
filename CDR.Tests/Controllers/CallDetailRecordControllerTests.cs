@@ -103,7 +103,56 @@ namespace CDR.Tests.Controllers
             var okResult = Assert.IsType<ObjectResult>(result);
             Assert.Equal(400, okResult.StatusCode);
             Assert.Equal("Wrong parameters provided. Provide either callerId or time range.", okResult.Value);
+        }
 
+        [Fact]
+        public async Task AverageCallDuration_InvalidParams_ReturnsInternalServerError()
+        {
+            // Act
+            var result = await _controller.GetAverageCallDuration(null, " v", "v");
+
+            // Assert
+            var okResult = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(500, okResult.StatusCode);
+        }
+
+        [Fact]
+        public async Task CallVolume_ValidParams_ReturnsOk()
+        {
+            // Arrange
+            _analyticsService.Setup(x => x.CallVolume(It.IsAny<DateTime>(), It.IsAny<DateTime>()))
+                .ReturnsAsync(16);
+
+            // Act
+            var result = await _controller.GetCallVolume("15/09/2016", "15/09/2016");
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var value = Assert.IsType<int>(okResult.Value);
+            Assert.Equal(16, value);
+        }
+
+        [Fact]
+        public async Task CallVolume_InvalidParams_ReturnsBadRequest()
+        {
+            // Act
+            var result = await _controller.GetCallVolume("", " ");
+
+            // Assert
+            var okResult = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(400, okResult.StatusCode);
+            Assert.Equal("Wrong parameters provided. Provide valid time range.", okResult.Value);
+        }
+
+        [Fact]
+        public async Task CallVolume_InvalidParams_ReturnsInternalServerError()
+        {
+            // Act
+            var result = await _controller.GetCallVolume("v", " v");
+
+            // Assert
+            var okResult = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(500, okResult.StatusCode);
         }
 
         private static FormFile CreateMockFormFile(string content)

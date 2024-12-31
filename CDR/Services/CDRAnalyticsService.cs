@@ -29,5 +29,10 @@ namespace CDR.Services
             var result = data.Average(d => d.Duration);
             return Math.Round(result, 3, MidpointRounding.ToZero);
         }
+
+        public async Task<int> CallVolume(DateTime startDate, DateTime endDate)
+        {
+            return (await _repository.GetRecordsByDateRangeAsync(startDate, endDate)).Count;
+        }
     }
 }
