@@ -243,5 +243,15 @@ namespace CDR.Tests.Repositories
             // Assert
             Assert.Empty(result);
         }
+
+        [Fact]
+        public async Task GetAllCDRs_ReturnsData()
+        {
+            // Act
+            var result = await _repository.GetAllCDRs();
+
+            // Assert
+            Assert.Equal(4, result.Count);
+        }
     }
 }

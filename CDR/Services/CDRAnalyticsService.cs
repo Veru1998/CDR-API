@@ -34,5 +34,15 @@ namespace CDR.Services
         {
             return (await _repository.GetRecordsByDateRangeAsync(startDate, endDate)).Count;
         }
+
+        public async Task<List<CallDetailRecord>> CostCalls(decimal threshhold, bool higher)
+        {
+            var data = await _repository.GetAllCDRs();
+            data = higher 
+                ? data.Where(d => d.Cost >= threshhold).ToList() 
+                : data.Where(d => d.Cost <= threshhold).ToList();
+
+            return data;
+        }
     }
 }

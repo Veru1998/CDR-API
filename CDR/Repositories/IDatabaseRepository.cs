@@ -10,5 +10,6 @@ namespace CDR.Repositories
         Task<List<CallDetailRecord>> GetRecordsByDateAsync(DateTime? date);
         Task<List<CallDetailRecord>> GetRecordsByDateRangeAsync(DateTime startDate, DateTime endDate);
         Task<List<CallDetailRecord>> GetXRecordsByDateAsync(int numberOfRecords, bool ascending, DateTime? startDate, DateTime? endDate);
+        Task<List<CallDetailRecord>> GetAllCDRs();
     }
 }

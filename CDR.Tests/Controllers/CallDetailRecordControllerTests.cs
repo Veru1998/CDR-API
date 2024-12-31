@@ -1,5 +1,6 @@
 ﻿
 using CDR.Controllers;
+using CDR.Models;
 using CDR.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -153,6 +154,84 @@ namespace CDR.Tests.Controllers
             // Assert
             var okResult = Assert.IsType<ObjectResult>(result);
             Assert.Equal(500, okResult.StatusCode);
+        }
+
+        [Fact]
+        public async Task HighCostCalls_ValidParams_ReturnsOk()
+        {
+            // Arrange
+            _analyticsService.Setup(x => x.CostCalls(It.IsAny<decimal>(), true))
+                .ReturnsAsync([
+                    new()
+                    {
+                        CallerId = "441301978896",
+                        Recipient = "446658996481",
+                        CallDate = DateTime.Parse("15/09/2016"),
+                        EndTime = TimeOnly.Parse("07:23:33"),
+                        Duration = 23,
+                        Cost = 0.53m,
+                        Reference = "C5629724701KDO9395CA2CC5617BA93E4",
+                        Currency = "GBP"
+                    }]);
+
+            // Act
+            var result = await _controller.GetHighCostCalls(0.5m);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var value = Assert.IsType<ListReturnTypeModel>(okResult.Value);
+            Assert.Equal(1, value.Count);
+        }
+
+        [Fact]
+        public async Task HighCostCalls_InvalidParams_ReturnsBadRequest()
+        {
+            // Act
+            var result = await _controller.GetHighCostCalls(0);
+
+            // Assert
+            var okResult = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(400, okResult.StatusCode);
+            Assert.Equal("Threshhold cannot be 0.", okResult.Value);
+        }
+
+        [Fact]
+        public async Task LowCostCalls_ValidParams_ReturnsOk()
+        {
+            // Arrange
+            _analyticsService.Setup(x => x.CostCalls(It.IsAny<decimal>(), false))
+                .ReturnsAsync([
+                    new()
+                    {
+                        CallerId = "441301978896",
+                        Recipient = "446658996481",
+                        CallDate = DateTime.Parse("15/09/2016"),
+                        EndTime = TimeOnly.Parse("07:23:33"),
+                        Duration = 23,
+                        Cost = 0.013m,
+                        Reference = "C5629724701KDO9395CA2CC5617BA93E4",
+                        Currency = "GBP"
+                    }]);
+
+            // Act
+            var result = await _controller.GetLowCostCalls(0.2m);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var value = Assert.IsType<ListReturnTypeModel>(okResult.Value);
+            Assert.Equal(1, value.Count);
+        }
+
+        [Fact]
+        public async Task LowCostCalls_InvalidParams_ReturnsBadRequest()
+        {
+            // Act
+            var result = await _controller.GetLowCostCalls(0);
+
+            // Assert
+            var okResult = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(400, okResult.StatusCode);
+            Assert.Equal("Threshhold cannot be 0.", okResult.Value);
         }
 
         private static FormFile CreateMockFormFile(string content)

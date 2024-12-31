@@ -68,5 +68,10 @@ namespace CDR.Repositories
 
             return result.Take(numberOfRecords).ToList();
         }
+
+        public async Task<List<CallDetailRecord>> GetAllCDRs()
+        {
+            return await _dbContext.CDRs.ToListAsync();
+        }
     }
 }
