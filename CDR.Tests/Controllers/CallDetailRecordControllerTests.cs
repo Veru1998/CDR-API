@@ -9,19 +9,28 @@ namespace CDR.Tests.Controllers
 {
     public class CallDetailRecordControllerTests
     {
+        private readonly CallDetailRecordController _controller;
+        private readonly Mock<ICDRAnalyticsService> _analyticsService;
+        private readonly Mock<ICsvProcessingService> _csvProcessingService;
+
+        public CallDetailRecordControllerTests() 
+        {
+            _csvProcessingService = new Mock<ICsvProcessingService>();
+            _analyticsService = new Mock<ICDRAnalyticsService>();
+
+            _controller = new CallDetailRecordController(_csvProcessingService.Object, _analyticsService.Object);
+        }
+
         [Fact]
         public async Task UploadCsv_ValidFile_ReturnsOk()
         {
             // Arrange
-            var mockService = new Mock<ICsvProcessingService>();
-            var controller = new CallDetailRecordController(mockService.Object);
-
             var csvContent = @"caller_id,recipient,call_date,end_time,duration,cost,reference,currency
                            441215598896,448000096481,16/08/2016,14:21:33,43,0,C5DA9724701EEBBA95CA2CC5617BA93E4,GBP";
             var file = CreateMockFormFile(csvContent);
 
             // Act
-            var result = await controller.UploadCsv(file);
+            var result = await _controller.UploadCsv(file);
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
@@ -32,14 +41,11 @@ namespace CDR.Tests.Controllers
         public async Task UploadCsv_EmptyFile_ReturnsBadRequest()
         {
             // Arrange
-            var mockService = new Mock<ICsvProcessingService>();
-            var controller = new CallDetailRecordController(mockService.Object);
-
             var csvContent = @"";
             var file = CreateMockFormFile(csvContent);
 
             // Act
-            var result = await controller.UploadCsv(file);
+            var result = await _controller.UploadCsv(file);
 
             // Assert
             var okResult = Assert.IsType<ObjectResult>(result);
@@ -50,12 +56,8 @@ namespace CDR.Tests.Controllers
         [Fact]
         public async Task UploadCsv_NoFile_ReturnsBadRequest()
         {
-            // Arrange
-            var mockService = new Mock<ICsvProcessingService>();
-            var controller = new CallDetailRecordController(mockService.Object);
-
             // Act
-            var result = await controller.UploadCsv(null);
+            var result = await _controller.UploadCsv(null);
 
             // Assert
             var okResult = Assert.IsType<ObjectResult>(result);
@@ -66,19 +68,42 @@ namespace CDR.Tests.Controllers
         [Fact]
         public async Task UploadCsv_ExceptionOccured_ReturnsInternalServerError()
         {
-            // Arrange
-            var mockService = new Mock<ICsvProcessingService>();
-            mockService.Setup((s) => s.ProcessCsvFile(It.IsAny<IFormFile>())).ThrowsAsync(new Exception());
-
-            var controller = new CallDetailRecordController(mockService.Object);
-
             // Act
-            var result = await controller.UploadCsv(null);
+            var result = await _controller.UploadCsv(null);
 
             // Assert
             var okResult = Assert.IsType<ObjectResult>(result);
             Assert.Equal(400, okResult.StatusCode);
             Assert.Equal("No file uploaded or file is empty.", okResult.Value);
+        }
+
+        [Fact]
+        public async Task AverageCallDuration_ValidParams_ReturnsOk()
+        {
+            // Arrange
+            _analyticsService.Setup(x => x.AverageCallDuration(It.IsAny<string>(), null, null))
+                .ReturnsAsync(59);
+
+            // Act
+            var result = await _controller.GetAverageCallDuration("456985656589", null, null);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var value = Assert.IsType<double>(okResult.Value);
+            Assert.Equal(59, value);
+        }
+
+        [Fact]
+        public async Task AverageCallDuration_InvalidParams_ReturnsBadRequest()
+        {
+            // Act
+            var result = await _controller.GetAverageCallDuration(null, null, null);
+
+            // Assert
+            var okResult = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(400, okResult.StatusCode);
+            Assert.Equal("Wrong parameters provided. Provide either callerId or time range.", okResult.Value);
+
         }
 
         private static FormFile CreateMockFormFile(string content)

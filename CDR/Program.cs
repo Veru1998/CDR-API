@@ -21,6 +21,7 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<CallDetailRecordDBContext>(options => options.UseSqlServer(connectionString));
 
 builder.Services.AddScoped<ICsvProcessingService, CsvProcessingService>();
+builder.Services.AddScoped<ICDRAnalyticsService, CDRAnalyticsService>();
 builder.Services.AddScoped<IDatabaseRepository, DatabaseRepository>();
 
 var app = builder.Build();

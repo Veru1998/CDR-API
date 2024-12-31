@@ -6,7 +6,7 @@ using Moq;
 
 namespace CDR.Tests.Services
 {
-    public class CsvProcessingFileTests
+    public class CsvProcessingServiceTests
     {
         [Fact]
         public async Task ProcessCsvFile_ValidFile_ProcessesSuccessfully()
