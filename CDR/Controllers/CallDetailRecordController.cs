@@ -184,5 +184,34 @@ namespace CDR.Controllers
                 return StatusCode(500, $"An error occurred: {ex.Message}");
             }
         }
+
+        /// <summary>
+        /// Get total cost of calls for given callerId.
+        /// </summary>
+        /// <param name="callerId">Id of the caller.</param>
+        /// <returns>Returns cost of calls for given callerId.</returns>
+        /// <response code="400">"Wrong parameters provided. Provide valid callerId."</response>
+        /// <response code="500">"An error occurred: [error message]."</response>
+        [HttpGet("total-call-cost")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetTotalCallCost(string? callerId)
+        {
+            if (string.IsNullOrEmpty(callerId))
+            {
+                return StatusCode(400, "Wrong parameters provided. Provide valid either callerId or date.");
+            }
+
+            try
+            {
+                var result = await _analyticsService.TotalCallCost(callerId);
+                return new OkObjectResult(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An error occurred: {ex.Message}");
+            }
+        }
     }
 }

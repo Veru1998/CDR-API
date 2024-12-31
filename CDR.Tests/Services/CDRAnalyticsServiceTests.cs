@@ -9,8 +9,8 @@ namespace CDR.Tests.Services
     {
         private readonly ICDRAnalyticsService _service;
         private readonly Mock<IDatabaseRepository> _repository;
-        private List<CallDetailRecord> costCallCDRs = new List<CallDetailRecord>()
-        {
+        private readonly List<CallDetailRecord> costCallCDRs =
+        [
             new()
             {
                 CallerId = "441215598896",
@@ -66,7 +66,7 @@ namespace CDR.Tests.Services
                 Reference = "C659572456KD8958H95CA2CC5617BA93E4",
                 Currency = "GBP"
             }
-        };
+        ];
 
         public CDRAnalyticsServiceTests()
         {
@@ -272,6 +272,56 @@ namespace CDR.Tests.Services
 
             // Assert
             Assert.Equal(3, result.Count);
+        }
+
+        [Fact]
+        public async Task TotalCallCost_ValidRecords_ReturnsData()
+        {
+            // Arrange
+            _repository.Setup(x => x.GetRecordsByCallerIdAsync("441032594896")).ReturnsAsync(
+                [
+                    new()
+                    {
+                        CallerId = "441032594896",
+                        Recipient = "448068596481",
+                        CallDate = DateTime.Parse("16/09/2016"),
+                        EndTime = TimeOnly.Parse("16:01:35"),
+                        Duration = 23,
+                        Cost = 0.5m,
+                        Reference = "C659572456KD8GHOH95CA2CC5617BA93E4",
+                        Currency = "GBP"
+                    },
+                    new()
+                    {
+                        CallerId = "441032594896",
+                        Recipient = "448068596481",
+                        CallDate = DateTime.Parse("16/09/2016"),
+                        EndTime = TimeOnly.Parse("16:01:35"),
+                        Duration = 23,
+                        Cost = 0.15m,
+                        Reference = "C659572456KD8958H95CA2CC5617BA93E4",
+                        Currency = "GBP"
+                    }
+                ]);
+
+            // Act
+            var result = await _service.TotalCallCost("441032594896");
+
+            // Assert
+            Assert.Equal(0.65m, result);
+        }
+
+        [Fact]
+        public async Task TotalCallCost_InValidRecords_ReturnsNoData()
+        {
+            // Arrange
+            _repository.Setup(x => x.GetRecordsByCallerIdAsync("441032594896")).ReturnsAsync([]);
+
+            // Act
+            var result = await _service.TotalCallCost("441032594896");
+
+            // Assert
+            Assert.Equal(0, result);
         }
     }
 }

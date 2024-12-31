@@ -234,6 +234,34 @@ namespace CDR.Tests.Controllers
             Assert.Equal("Threshhold cannot be 0.", okResult.Value);
         }
 
+        [Fact]
+        public async Task TotalCallCost_ValidParams_ReturnsOk()
+        {
+            // Arrange
+            _analyticsService.Setup(x => x.TotalCallCost(It.IsAny<string>()))
+                .ReturnsAsync(1.235m);
+
+            // Act
+            var result = await _controller.GetTotalCallCost("441217966476");
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var value = Assert.IsType<decimal>(okResult.Value);
+            Assert.Equal(1.235m, value);
+        }
+
+        [Fact]
+        public async Task TotalCallCost_InvalidParams_ReturnsBadRequest()
+        {
+            // Act
+            var result = await _controller.GetTotalCallCost(null);
+
+            // Assert
+            var okResult = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(400, okResult.StatusCode);
+            Assert.Equal("Wrong parameters provided. Provide valid either callerId or date.", okResult.Value);
+        }
+
         private static FormFile CreateMockFormFile(string content)
         {
             var stream = new MemoryStream();

@@ -44,5 +44,11 @@ namespace CDR.Services
 
             return data;
         }
+
+        public async Task<decimal> TotalCallCost(string callerId)
+        {
+            var data = await _repository.GetRecordsByCallerIdAsync(callerId);
+            return data.Sum(d => d.Cost);
+        }
     }
 }
