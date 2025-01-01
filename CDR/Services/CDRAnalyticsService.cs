@@ -50,5 +50,17 @@ namespace CDR.Services
             var data = await _repository.GetRecordsByCallerIdAsync(callerId);
             return data.Sum(d => d.Cost);
         }
+
+        public async Task<int> TotalCalls(string callerId, DateTime? startDate, DateTime? endDate)
+        {
+            var data = await _repository.GetRecordsByCallerIdAsync(callerId);
+            
+            if (startDate != null && endDate != null)
+            {
+                data = data.Where(record => record.CallDate >= startDate && record.CallDate <= endDate).ToList();
+            }
+           
+            return data.Count;
+        }
     }
 }

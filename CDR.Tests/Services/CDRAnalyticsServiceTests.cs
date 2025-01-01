@@ -59,7 +59,7 @@ namespace CDR.Tests.Services
             {
                 CallerId = "441032594896",
                 Recipient = "448068596481",
-                CallDate = DateTime.Parse("16/09/2016"),
+                CallDate = DateTime.Parse("18/09/2016"),
                 EndTime = TimeOnly.Parse("16:01:35"),
                 Duration = 23,
                 Cost = 0.15m,
@@ -319,6 +319,48 @@ namespace CDR.Tests.Services
 
             // Act
             var result = await _service.TotalCallCost("441032594896");
+
+            // Assert
+            Assert.Equal(0, result);
+        }
+
+        [Fact]
+        public async Task TotalCalls_ValidRecordsWithoutDate_ReturnsData()
+        {
+            // Arrange
+            _repository.Setup(x => x.GetRecordsByCallerIdAsync(It.IsAny<string>()))
+                .ReturnsAsync(costCallCDRs);
+
+            // Act
+            var result = await _service.TotalCalls("441032594896", null, null);
+
+            // Assert
+            Assert.Equal(5, result);
+        }
+
+        [Fact]
+        public async Task TotalCalls_ValidRecordsWithDate_ReturnsData()
+        {
+            // Arrange
+            _repository.Setup(x => x.GetRecordsByCallerIdAsync(It.IsAny<string>()))
+                .ReturnsAsync(costCallCDRs);
+
+            // Act
+            var result = await _service.TotalCalls("441032594896", DateTime.Parse("01/09/2016"), DateTime.Parse("16/09/2016"));
+
+            // Assert
+            Assert.Equal(1, result);
+        }
+
+        [Fact]
+        public async Task TotalCalls_NoRecords_ReturnsZero()
+        {
+            // Arrange
+            _repository.Setup(x => x.GetRecordsByCallerIdAsync(It.IsAny<string>()))
+                .ReturnsAsync([]);
+
+            // Act
+            var result = await _service.TotalCalls("441301978896", null, null);
 
             // Assert
             Assert.Equal(0, result);

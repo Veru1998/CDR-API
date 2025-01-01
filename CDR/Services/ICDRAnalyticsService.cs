@@ -8,5 +8,6 @@ namespace CDR.Services
         Task<int> CallVolume(DateTime startDate, DateTime endDate);
         Task<List<CallDetailRecord>> CostCalls(decimal threshhold, bool higher);
         Task<decimal> TotalCallCost(string callerId);
+        Task<int> TotalCalls(string callerId, DateTime? startDate, DateTime? endDate);
     }
 }

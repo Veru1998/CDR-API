@@ -262,6 +262,45 @@ namespace CDR.Tests.Controllers
             Assert.Equal("Wrong parameters provided. Provide valid either callerId or date.", okResult.Value);
         }
 
+        [Fact]
+        public async Task TotalCalls_ValidParams_ReturnsOk()
+        {
+            // Arrange
+            _analyticsService.Setup(x => x.TotalCalls(It.IsAny<string>(), null, null))
+                .ReturnsAsync(126);
+
+            // Act
+            var result = await _controller.GetTotalCalls("458965896542", null, null);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var value = Assert.IsType<int>(okResult.Value);
+            Assert.Equal(126, value);
+        }
+
+        [Fact]
+        public async Task TotalCalls_InvalidParams_ReturnsBadRequest()
+        {
+            // Act
+            var result = await _controller.GetTotalCalls("458965896542", "18/08/2016", null);
+
+            // Assert
+            var okResult = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(400, okResult.StatusCode);
+            Assert.Equal("Wrong parameters provided. Provide either callerId.", okResult.Value);
+        }
+
+        [Fact]
+        public async Task TotalCalls_InvalidParams_ReturnsInternalServerError()
+        {
+            // Act
+            var result = await _controller.GetTotalCalls("458965896542", " v", "v");
+
+            // Assert
+            var okResult = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(500, okResult.StatusCode);
+        }
+
         private static FormFile CreateMockFormFile(string content)
         {
             var stream = new MemoryStream();

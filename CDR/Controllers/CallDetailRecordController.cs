@@ -213,5 +213,42 @@ namespace CDR.Controllers
                 return StatusCode(500, $"An error occurred: {ex.Message}");
             }
         }
+
+        /// <summary>
+        /// Get total number of calls for callerId.
+        /// </summary>
+        /// <param name="callerId">Id of the caller.</param>
+        /// <param name="startDate">Start date of the range. (Optional)</param>
+        /// <param name="endDate">End date of the range. (Optional)</param>
+        /// <remarks>
+        /// <p>You can use all parameters to filter the number of calls by date range.</p>
+        /// </remarks>
+        /// <returns>Returns number of calls for selected parameters.</returns>
+        /// <response code="400">"Wrong parameters provided. Provide callerId."</response>
+        /// <response code="500">"An error occurred: [error message]."</response>
+        [HttpGet("total-calls")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetTotalCalls(string callerId, string? startDate, string? endDate)
+        {
+            if (string.IsNullOrEmpty(callerId) || 
+                (!string.IsNullOrEmpty(callerId) && string.IsNullOrEmpty(startDate) != string.IsNullOrEmpty(endDate)))
+            {
+                return StatusCode(400, "Wrong parameters provided. Provide either callerId.");
+            }
+
+            try
+            {
+                var result = await _analyticsService.TotalCalls(callerId,
+                    !string.IsNullOrEmpty(startDate) ? DateTime.Parse(startDate) : null,
+                    !string.IsNullOrEmpty(endDate) ? DateTime.Parse(endDate) : null);
+                return new OkObjectResult(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An error occurred: {ex.Message}");
+            }
+        }
     }
 }
