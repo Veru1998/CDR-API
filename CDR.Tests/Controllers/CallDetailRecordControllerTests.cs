@@ -179,7 +179,7 @@ namespace CDR.Tests.Controllers
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
-            var value = Assert.IsType<ListReturnTypeModel>(okResult.Value);
+            var value = Assert.IsType<ListReturnType>(okResult.Value);
             Assert.Equal(1, value.Count);
         }
 
@@ -218,7 +218,7 @@ namespace CDR.Tests.Controllers
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
-            var value = Assert.IsType<ListReturnTypeModel>(okResult.Value);
+            var value = Assert.IsType<ListReturnType>(okResult.Value);
             Assert.Equal(1, value.Count);
         }
 
@@ -295,6 +295,52 @@ namespace CDR.Tests.Controllers
         {
             // Act
             var result = await _controller.GetTotalCalls("458965896542", " v", "v");
+
+            // Assert
+            var okResult = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(500, okResult.StatusCode);
+        }
+
+        [Fact]
+        public async Task Summary_ValidParams_ReturnsOk()
+        {
+            // Arrange
+            _analyticsService.Setup(x => x.SummaryByDateRange(It.IsAny<DateTime>(), It.IsAny<DateTime>()))
+                .ReturnsAsync(new SummaryReturnType
+                {
+                    TotalCalls = 510,
+                    TotalCost = 15.23m,
+                    AverageDuration = 98,
+                    MostFrequentCaller = "556859856145",
+                    MostFrequentRecipient = "444325641544"
+                });
+
+            // Act
+            var result = await _controller.GetSummary("15/09/2016", "15/09/2016");
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var value = Assert.IsType<SummaryReturnType>(okResult.Value);
+            Assert.Equal(510, value.TotalCalls);
+        }
+
+        [Fact]
+        public async Task Summary_InvalidParams_ReturnsBadRequest()
+        {
+            // Act
+            var result = await _controller.GetSummary("", "");
+
+            // Assert
+            var okResult = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(400, okResult.StatusCode);
+            Assert.Equal("Wrong parameters provided. Provide valid time range.", okResult.Value);
+        }
+
+        [Fact]
+        public async Task Summary_InvalidParams_ReturnsInternalServerError()
+        {
+            // Act
+            var result = await _controller.GetSummary("v", " v");
 
             // Assert
             var okResult = Assert.IsType<ObjectResult>(result);

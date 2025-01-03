@@ -365,5 +365,70 @@ namespace CDR.Tests.Services
             // Assert
             Assert.Equal(0, result);
         }
+
+        [Fact]
+        public async Task SummaryByDateRange_ValidRecords_ReturnsData()
+        {
+            // Arrange
+            _repository.Setup(x => x.GetRecordsByDateRangeAsync(It.IsAny<DateTime>(), It.IsAny<DateTime>()))
+                .ReturnsAsync([ new()
+            {
+                CallerId = "441301978896",
+                Recipient = "446548596481",
+                CallDate = DateTime.Parse("20/09/2016"),
+                EndTime = TimeOnly.Parse("07:23:33"),
+                Duration = 49,
+                Cost = 0.013m,
+                Reference = "C5629724701KDO9395CA2CC5617BA93E4",
+                Currency = "GBP"
+            },
+            new()
+            {
+                CallerId = "441032594896",
+                Recipient = "448068596481",
+                CallDate = DateTime.Parse("16/09/2016"),
+                EndTime = TimeOnly.Parse("16:01:35"),
+                Duration = 23,
+                Cost = 0.5m,
+                Reference = "C659572456KD8GHOH95CA2CC5617BA93E4",
+                Currency = "GBP"
+            },
+            new()
+            {
+                CallerId = "441032594896",
+                Recipient = "448068596481",
+                CallDate = DateTime.Parse("18/09/2016"),
+                EndTime = TimeOnly.Parse("16:01:35"),
+                Duration = 23,
+                Cost = 0.15m,
+                Reference = "C659572456KD8958H95CA2CC5617BA93E4",
+                Currency = "GBP"
+            }]);
+
+            // Act
+            var result = await _service.SummaryByDateRange(DateTime.Parse("01/09/2016"), DateTime.Parse("30/09/2016"));
+
+            // Assert
+            Assert.Equal(3, result?.TotalCalls);
+            Assert.Equal(0.663m, result?.TotalCost);
+            Assert.Equal(31.666, result?.AverageDuration);
+            Assert.Equal(3, result?.TotalCalls);
+            Assert.Equal("441032594896", result?.MostFrequentCaller);
+            Assert.Equal("448068596481", result?.MostFrequentRecipient);
+        }
+
+        [Fact]
+        public async Task SummaryByDateRange_NoRecords_ReturnsNull()
+        {
+            // Arrange
+            _repository.Setup(x => x.GetRecordsByDateRangeAsync(It.IsAny<DateTime>(), It.IsAny<DateTime>()))
+                .ReturnsAsync([]);
+
+            // Act
+            var result = await _service.SummaryByDateRange(DateTime.Parse("01/09/2016"), DateTime.Parse("30/09/2016"));
+
+            // Assert
+            Assert.Null(result);
+        }
     }
 }

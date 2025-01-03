@@ -62,5 +62,27 @@ namespace CDR.Services
            
             return data.Count;
         }
+
+        public async Task<SummaryReturnType?> SummaryByDateRange(DateTime startDate, DateTime endDate)
+        {
+            var data = await _repository.GetRecordsByDateRangeAsync(startDate, endDate);
+
+            if (data.Count == 0) return null;
+            
+            return new SummaryReturnType
+            {
+                TotalCalls = data.Count,
+                TotalCost = data.Sum(d => d.Cost),  
+                AverageDuration = Math.Round(data.Average(d => d.Duration), 3, MidpointRounding.ToZero),
+                MostFrequentCaller = data.GroupBy(d => d.CallerId)
+                .Select(d => new { CallerId = d.Key, Count = d.Count() })
+                .OrderByDescending(d => d.Count)
+               .FirstOrDefault()?.CallerId ?? "",
+                MostFrequentRecipient = data.GroupBy(d => d.Recipient)
+                .Select(d => new { Recipient = d.Key, Count = d.Count() })
+                .OrderByDescending(d => d.Count)
+               .FirstOrDefault()?.Recipient ?? ""
+            };
+        }
     }
 }

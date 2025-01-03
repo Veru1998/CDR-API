@@ -62,11 +62,11 @@ namespace CDR.Controllers
         /// <p>You can use either callerId or time range. Combination is not supported.</p> 
         /// <p>If all params are provided, callerId takes priority.</p>
         /// </remarks>
-        /// <returns>Returns average value for selected parameters.</returns>
+        /// <response code="200">Returns average value for selected parameters.</response>
         /// <response code="400">"Wrong parameters provided. Provide either callerId or time range."</response>
         /// <response code="500">"An error occurred: [error message]."</response>
         [HttpGet("avg-call-duration")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(double), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAverageCallDuration(string? callerId, string? startDate, string? endDate)
@@ -94,11 +94,11 @@ namespace CDR.Controllers
         /// </summary>
         /// <param name="startDate">Start date of the range.</param>
         /// <param name="endDate">End date of the range.</param>
-        /// <returns>Returns number of calls made during given time range.</returns>
+        /// <response code="200">Returns number of calls made during given time range.</response>
         /// <response code="400">"Wrong parameters provided. Provide valid time range."</response>
         /// <response code="500">"An error occurred: [error message]."</response>
         [HttpGet("call-volume")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(int), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetCallVolume(string startDate, string endDate)
@@ -123,11 +123,11 @@ namespace CDR.Controllers
         /// Get calls which exceed given threshhold.
         /// </summary>
         /// <param name="threshhold"></param>
-        /// <returns>Returns calls with cost higher or equal to given threshhold.</returns>
+        /// <response code="200">Returns calls with cost higher or equal to given threshhold.</response>
         /// <response code="400">"Threshhold cannot be 0."</response>
         /// <response code="500">"An error occurred: [error message]."</response>
         [HttpGet("high-cost-calls")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(List<CallDetailRecord>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetHighCostCalls(decimal threshhold)
@@ -140,7 +140,7 @@ namespace CDR.Controllers
             try
             {
                 var result = await _analyticsService.CostCalls(threshhold, true);
-                return new OkObjectResult(new ListReturnTypeModel
+                return new OkObjectResult(new ListReturnType
                 {
                     Count = result.Count,
                     Records = result
@@ -156,11 +156,11 @@ namespace CDR.Controllers
         /// Get calls which are bellow given threshhold.
         /// </summary>
         /// <param name="threshhold"></param>
-        /// <returns>Returns calls with cost lower or equal to given threshhold.</returns>
-        /// <response code="400">"Wrong parameters provided. Provide valid threshhold."</response>
+        /// <response code="200">Returns calls with cost lower or equal to given threshhold.</response>
+        /// <response code="400">"Threshhold cannot be 0."</response>
         /// <response code="500">"An error occurred: [error message]."</response>
         [HttpGet("low-cost-calls")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(List<CallDetailRecord>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetLowCostCalls(decimal threshhold)
@@ -173,7 +173,7 @@ namespace CDR.Controllers
             try
             {
                 var result = await _analyticsService.CostCalls(threshhold, false);
-                return new OkObjectResult(new ListReturnTypeModel
+                return new OkObjectResult(new ListReturnType
                 {
                     Count = result.Count,
                     Records = result
@@ -189,11 +189,11 @@ namespace CDR.Controllers
         /// Get total cost of calls for given callerId.
         /// </summary>
         /// <param name="callerId">Id of the caller.</param>
-        /// <returns>Returns cost of calls for given callerId.</returns>
+        /// <response code="200">Returns cost of calls for given callerId.</response>
         /// <response code="400">"Wrong parameters provided. Provide valid callerId."</response>
         /// <response code="500">"An error occurred: [error message]."</response>
         [HttpGet("total-call-cost")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(decimal), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetTotalCallCost(string? callerId)
@@ -223,11 +223,11 @@ namespace CDR.Controllers
         /// <remarks>
         /// <p>You can use all parameters to filter the number of calls by date range.</p>
         /// </remarks>
-        /// <returns>Returns number of calls for selected parameters.</returns>
+        /// <response code="200">Returns number of calls for selected parameters.</response>
         /// <response code="400">"Wrong parameters provided. Provide callerId."</response>
         /// <response code="500">"An error occurred: [error message]."</response>
         [HttpGet("total-calls")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(int), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetTotalCalls(string callerId, string? startDate, string? endDate)
@@ -243,6 +243,36 @@ namespace CDR.Controllers
                 var result = await _analyticsService.TotalCalls(callerId,
                     !string.IsNullOrEmpty(startDate) ? DateTime.Parse(startDate) : null,
                     !string.IsNullOrEmpty(endDate) ? DateTime.Parse(endDate) : null);
+                return new OkObjectResult(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An error occurred: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Get summary for given time range.
+        /// </summary>
+        /// <param name="startDate">Start date of the range.</param>
+        /// <param name="endDate">End date of the range.</param>
+        /// <response code="200">Returns summary for given time range. If no records are found returns null.</response>
+        /// <response code="400">"Wrong parameters provided. Provide valid time range."</response>
+        /// <response code="500">"An error occurred: [error message]."</response>
+        [HttpGet("summary")]
+        [ProducesResponseType(typeof(SummaryReturnType), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetSummary(string startDate, string endDate)
+        {
+            if (string.IsNullOrWhiteSpace(startDate) || string.IsNullOrWhiteSpace(endDate))
+            {
+                return StatusCode(400, "Wrong parameters provided. Provide valid time range.");
+            }
+
+            try
+            {
+                var result = await _analyticsService.SummaryByDateRange(DateTime.Parse(startDate), DateTime.Parse(endDate));
                 return new OkObjectResult(result);
             }
             catch (Exception ex)
